@@ -30,7 +30,7 @@ ticker = "BTC-USD"
 MODO_TEST = True  # Cambia a False para producción
 
 if MODO_TEST:
-    FECHA_ANOMALIA = "2026-01-21 14:00:00"  # ¡Cambia aquí la fecha/hora deseada!
+    FECHA_ANOMALIA = "2026-01-21 15:00:00"  # ¡Cambia aquí la fecha/hora deseada!
     end = pd.Timestamp(FECHA_ANOMALIA, tz=colombia_tz)
     print(f"MODO TEST ACTIVADO: Analizando anomalía del {end}")
 else:
