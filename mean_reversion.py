@@ -25,8 +25,8 @@ warnings.filterwarnings("ignore", category=FutureWarning, module='yfinance')
 # 1. Configuración de parámetros
 colombia_tz = pytz.timezone('America/Bogota')
 ticker = "BTC-USD"
-end = datetime.now()
-#end = datetime(2026, 1, 21, 16, 0, tzinfo=colombia_tz) # Commented out future date
+#end = datetime.now()
+end = datetime(2026, 1, 21, 16, 0, tzinfo=colombia_tz) # Commented out future date
 start = end - timedelta(days=365) # Changed to 1 year to get more data
 interval = "1h"
 window = 50 # Reduced window size for rolling calculations to avoid excessive NaNs
@@ -143,7 +143,10 @@ ax2.legend()
 ax2.grid(True, which='both', linestyle='--', alpha=0.5)
 
 plt.tight_layout()
-plt.show()
+# Guardar el gráfico como imagen
+plt.savefig('grafico_btc.png', dpi=150, bbox_inches='tight')
+print("Gráfico guardado como grafico_btc.png")
+plt.close()  # Cerrar la figura para liberar memoria
 
 # 1.1. Definición de Features
 # Usaremos una copia para no alterar el dataframe original de anomalías
@@ -739,29 +742,42 @@ print("   4. Ajustar parámetros según resultados")
 
 
 
-import requests
-
-
-
 import os
+import requests
 
 def enviar_telegram(mensaje):
     bot_token = os.getenv('BOT_TOKEN')
     chat_id = os.getenv('CHAT_ID')
     if not bot_token or not chat_id:
-        print("Error: BOT_TOKEN o CHAT_ID no están configurados.")
+        print("Error: BOT_TOKEN o CHAT_ID no configurados.")
         return
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = {
+
+    # Primero enviamos el texto
+    url_text = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload_text = {
         "chat_id": chat_id,
         "text": mensaje,
         "parse_mode": "Markdown"
     }
-    response = requests.post(url, data=payload)
-    if response.status_code != 200:
-        print(f"Error al enviar mensaje a Telegram: {response.text}")
+    response_text = requests.post(url_text, data=payload_text)
+    if response_text.status_code != 200:
+        print(f"Error al enviar texto: {response_text.text}")
+
+    # Luego enviamos la foto (si existe)
+    if os.path.exists('grafico_btc.png'):
+        url_photo = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+        files = {'photo': open('grafico_btc.png', 'rb')}
+        payload_photo = {
+            "chat_id": chat_id,
+            "caption": "📊 Gráfico de análisis BTC-USD (anomalías y bandas)"
+        }
+        response_photo = requests.post(url_photo, data=payload_photo, files=files)
+        if response_photo.status_code != 200:
+            print(f"Error al enviar foto: {response_photo.text}")
+        else:
+            print("Foto enviada correctamente")
     else:
-        print("Mensaje enviado correctamente a Telegram.")
+        print("No se encontró grafico_btc.png")
 
 # Asegurarse de que df_features, ultima_fila, y las variables relacionadas estén disponibles
 # Si este bloque se ejecuta de forma independiente, podría necesitar cargar los datos nuevamente o asegurar que df_features existe.
