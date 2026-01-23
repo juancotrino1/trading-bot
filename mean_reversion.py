@@ -687,10 +687,10 @@ columnas_finales = ['Close', 'signal', 'MR_Alignment_Score', 'MR_Alignment_Categ
 for h in horizontes:
     columnas_finales.extend([f'KNN_{h}h', f'Check_{h}h'])
 
-print("\n" + "=" * 60)
+print("=" * 60)
 print("ÚLTIMAS 15 ANOMALÍAS")
 print("=" * 60)
-display(reporte_final[columnas_finales].tail(15))
+print(reporte_final[columnas_finales].tail(15).to_string(index=True))
 
 # ============================================
 # 6.4 DISTRIBUCIÓN DE SEÑALES EN ANOMALÍAS
