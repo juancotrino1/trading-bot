@@ -10,12 +10,11 @@ import requests
 import os
 
 # Suppress warnings
-warnings.filterwarnings("ignore", category=FutureWarning, module='yfinance')
-warnings.filterwarnings("ignore", category=UserWarning, module='sklearn.utils.validation')
+warnings.filterwarnings("ignore")
 
 # ====== CONFIGURACIÓN DE TELEGRAM ======
-BOT_TOKEN = "8219822992:AAFTSaawrgdPcvyZ5QJ8bxSIPJ-eEFge6cQ"
-CHAT_ID = "805512543"
+BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 
 def enviar_telegram(mensaje):
     """Envía mensaje por Telegram"""
@@ -33,15 +32,45 @@ def enviar_telegram(mensaje):
         response = requests.post(url, data=payload, timeout=10)
         if response.status_code == 200:
             print("✅ Mensaje enviado a Telegram")
+            return True
         else:
             print(f"❌ Error enviando mensaje: {response.status_code}")
+            return False
     except Exception as e:
         print(f"❌ Error en Telegram: {e}")
+        return False
+
+def descargar_datos(ticker, start, end, interval, max_retries=5):
+    """Descarga datos con múltiples reintentos y estrategias alternativas"""
+    
+    # Estrategia 1: Ticker normal con reintentos
+    for attempt in range(max_retries):
+        try:
+            print(f"\n🔄 Intento {attempt + 1}/{max_retries} descargando {ticker}...")
+            
+            # Crear objeto Ticker explícitamente
+            btc = yf.Ticker(ticker)
+            data = btc.history(start=start, end=end, interval=interval)
+            
+            if not data.empty:
+                print(f"✅ Datos descargados: {len(data)} registros")
+                return data
+            else:
+                print(f"⚠️ Datos vacíos en intento {attempt + 1}")
+        except Exception as e:
+            print(f"❌ Error en intento {attempt + 1}: {str(e)[:100]}")
+        
+        if attempt < max_retries - 1:
+            wait_time = (attempt + 1) * 15  # Espera progresiva: 15s, 30s, 45s...
+            print(f"⏳ Esperando {wait_time}s antes de reintentar...")
+            time.sleep(wait_time)
+    
+    return pd.DataFrame()
 
 def main():
     try:
         print("="*60)
-        print(f"INICIO ANÁLISIS: {datetime.now()}")
+        print(f"🤖 INICIO ANÁLISIS: {datetime.now()}")
         print("="*60)
         
         # 1. Configuración de parámetros
@@ -53,29 +82,13 @@ def main():
         window = 50
         k = 2.5
         
-        # 2. Descarga de datos con reintentos
-        max_retries = 3
-        retry_delay_seconds = 60
-        
-        for attempt in range(max_retries):
-            try:
-                data = yf.download(ticker, start=start, end=end, interval=interval, progress=False)
-                if not data.empty:
-                    break
-                else:
-                    print(f"Intento {attempt + 1}: No hay datos")
-            except Exception as e:
-                print(f"Intento {attempt + 1}: Error: {e}")
-            
-            if attempt < max_retries - 1:
-                print(f"Esperando {retry_delay_seconds}s...")
-                time.sleep(retry_delay_seconds)
-            else:
-                print("Max reintentos alcanzado")
-                data = pd.DataFrame()
+        # 2. Descarga de datos con estrategia robusta
+        data = descargar_datos(ticker, start, end, interval)
         
         if data.empty:
-            enviar_telegram("❌ No se pudo descargar datos de BTC-USD")
+            error_msg = f"❌ *Error de descarga*\n\nNo se pudieron obtener datos de {ticker} después de múltiples intentos.\n\nPosibles causas:\n• Yahoo Finance temporalmente inaccesible\n• Problemas de red\n• Ticker delisted\n\nSe reintentará en la próxima ejecución."
+            enviar_telegram(error_msg)
+            print("❌ No se pudo descargar datos después de todos los intentos")
             return
         
         # Procesar datos
@@ -83,8 +96,24 @@ def main():
             data.columns = data.columns.droplevel(1)
             data.columns.name = None
         
-        data = data[['Open', 'High', 'Low', 'Close']].dropna()
+        # Verificar que tenemos las columnas necesarias
+        required_cols = ['Open', 'High', 'Low', 'Close']
+        if not all(col in data.columns for col in required_cols):
+            error_msg = f"❌ *Error de datos*\n\nColumnas faltantes en los datos descargados.\nColumnas disponibles: {list(data.columns)}"
+            enviar_telegram(error_msg)
+            return
+        
+        data = data[required_cols].dropna()
+        
+        if len(data) < 100:
+            error_msg = f"❌ *Datos insuficientes*\n\nSolo se obtuvieron {len(data)} registros. Se necesitan al menos 100."
+            enviar_telegram(error_msg)
+            return
+        
         data.index = data.index.tz_convert(colombia_tz)
+        
+        print(f"📊 Datos procesados: {len(data)} registros")
+        print(f"📅 Rango: {data.index[0]} a {data.index[-1]}")
         
         # 3. Cálculo de métricas
         data['log_return'] = np.log(data['Close'] / data['Close'].shift(1))
@@ -103,8 +132,6 @@ def main():
         # Features para ML
         from sklearn.preprocessing import StandardScaler
         from sklearn.neighbors import KNeighborsClassifier
-        from sklearn.ensemble import RandomForestClassifier
-        from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
         
         df_features = data.copy()
         
@@ -127,6 +154,11 @@ def main():
         
         df_features = df_features.dropna()
         
+        if len(df_features) < 50:
+            error_msg = f"❌ *Datos insuficientes para ML*\n\nDespués del procesamiento solo quedan {len(df_features)} registros."
+            enviar_telegram(error_msg)
+            return
+        
         # Crear targets
         horizontes = [4, 8, 12, 24, 48]
         for h in horizontes:
@@ -135,45 +167,26 @@ def main():
         
         df_features = df_features.dropna()
         
-        # Entrenar modelos (versión simplificada para velocidad)
+        # Entrenar modelos
         features_list = ['RSI', 'Volatility', 'Dist_from_MA', 'HL_Range', 'Log_Return_Accel',
                         'RSI_lag1', 'Volatility_lag1', 'ADX', 'BB_position']
         
         X = df_features[features_list]
         mejores_modelos = {}
         scalers = {}
-        metricas_detalladas = {}
         
         print("\n🔄 Entrenando modelos...")
         for h in horizontes:
             y = df_features[f'target_{h}h']
-            split_idx = int(len(X) * 0.8)
-            X_train = X.iloc[:split_idx]
-            y_train = y.iloc[:split_idx]
             
             scaler = StandardScaler()
-            X_train_scaled = scaler.fit_transform(X_train)
+            X_scaled = scaler.fit_transform(X)
             
-            # Modelo simple KNN para velocidad
             modelo = KNeighborsClassifier(n_neighbors=7, weights='distance')
-            modelo.fit(X_train_scaled, y_train)
+            modelo.fit(X_scaled, y)
             
-            # Re-entrenar con todos los datos
-            scaler_final = StandardScaler()
-            X_scaled_full = scaler_final.fit_transform(X)
-            modelo_final = KNeighborsClassifier(n_neighbors=7, weights='distance')
-            modelo_final.fit(X_scaled_full, y)
-            
-            mejores_modelos[h] = modelo_final
-            scalers[h] = scaler_final
-            
-            # Calcular métricas básicas
-            baseline = y.value_counts().max() / len(y)
-            metricas_detalladas[h] = {
-                'baseline': baseline,
-                'mejora_vs_baseline': 0.02,  # Placeholder
-                'test_accuracy': 0.52  # Placeholder
-            }
+            mejores_modelos[h] = modelo
+            scalers[h] = scaler
         
         print("✅ Modelos entrenados")
         
@@ -185,16 +198,15 @@ def main():
         
         # Generar mensaje para Telegram
         mensaje_telegram_final = f"""
-📊 *Análisis de Mercado Actual*
+📊 *Análisis BTC-USD*
 
-📅 Fecha/Hora: {fecha_actual.strftime('%Y-%m-%d %H:%M')} COT
+📅 {fecha_actual.strftime('%Y-%m-%d %H:%M')} COT
 💰 Precio: ${precio_actual:,.2f}
-🎯 Estado: {'🚨 ANOMALÍA DETECTADA' if es_anomalia_actual else '✅ Mercado Normal'}
+🎯 Estado: {'🚨 ANOMALÍA' if es_anomalia_actual else '✅ Normal'}
 """
         
         if es_anomalia_actual:
             signal_mr = ultima_fila['signal'].values[0]
-            log_return = ultima_fila['log_return'].values[0]
             
             X_actual = ultima_fila[features_list]
             predicciones = {}
@@ -207,68 +219,69 @@ def main():
                 tendencia = "ALCISTA" if pred == 1 else "BAJISTA"
                 confianza = prob[pred]
                 
-                nivel_confianza = "🟢" if confianza >= 0.65 else "🟡" if confianza >= 0.55 else "🔴"
+                nivel = "🟢" if confianza >= 0.65 else "🟡" if confianza >= 0.55 else "🔴"
                 
-                normalized_signal_mr = "ALCISTA" if signal_mr == "Long" else "BAJISTA"
-                compatible = (tendencia == normalized_signal_mr)
+                normalized_signal = "ALCISTA" if signal_mr == "Long" else "BAJISTA"
+                compatible = "✅" if tendencia == normalized_signal else "⚠️"
                 
                 predicciones[h] = {
                     "Predicción": tendencia,
                     "Confianza": confianza,
-                    "Nivel": nivel_confianza,
-                    "vs MeanRev": "✅" if compatible else "⚠️"
+                    "Nivel": nivel,
+                    "vs MeanRev": compatible
                 }
             
-            # Calcular MR_Alignment_Score
-            alignment_scores = [1 if p["vs MeanRev"] == "✅" else 0 for p in predicciones.values()]
-            current_mr_alignment_score = (sum(alignment_scores) / len(alignment_scores)) * 100
+            # Alineamiento
+            alignment = sum(1 for p in predicciones.values() if p["vs MeanRev"] == "✅")
+            alignment_pct = (alignment / len(horizontes)) * 100
             
-            # Categorizar
-            if current_mr_alignment_score >= 81:
-                categoria = "🟢Excelente"
-            elif current_mr_alignment_score >= 61:
-                categoria = "🟡Bueno"
-            elif current_mr_alignment_score >= 41:
-                categoria = "🟠Medio"
-            elif current_mr_alignment_score >= 21:
-                categoria = "🔴Bajo"
+            if alignment_pct >= 81:
+                cat = "🟢Excelente"
+            elif alignment_pct >= 61:
+                cat = "🟡Bueno"
+            elif alignment_pct >= 41:
+                cat = "🟠Medio"
             else:
-                categoria = "⚪Basura"
+                cat = "🔴Bajo"
             
             mensaje_telegram_final += f"""
-🎯 Señal Mean Reversion: {signal_mr}
-🤝 Alineamiento KNN-MR: {current_mr_alignment_score:.0f}% ({categoria})
+🎯 Señal MR: *{signal_mr}*
+🤝 Alineamiento: {alignment_pct:.0f}% {cat}
 
-*PREDICCIONES POR HORIZONTE:*
+*PREDICCIONES:*
 """
             
-            for h, p_data in predicciones.items():
-                mensaje_telegram_final += f"  *{h}h:* {p_data['Predicción']} {p_data['Nivel']} ({p_data['Confianza']:.0%}) {p_data['vs MeanRev']}\n"
+            for h, p in predicciones.items():
+                mensaje_telegram_final += f"  *{h}h:* {p['Predicción']} {p['Nivel']} ({p['Confianza']:.0%}) {p['vs MeanRev']}\n"
             
             # Consenso
-            predicciones_alcistas = sum(1 for p in predicciones.values() if p["Predicción"] == "ALCISTA")
-            consenso_pct = (predicciones_alcistas / len(horizontes)) * 100
+            alcistas = sum(1 for p in predicciones.values() if p["Predicción"] == "ALCISTA")
+            consenso_pct = (alcistas / len(horizontes)) * 100
             
             if consenso_pct >= 60:
-                recomendacion = "✅ CONSIDERAR OPERAR"
+                rec = "✅ CONSIDERAR OPERAR"
             elif consenso_pct >= 40:
-                recomendacion = "⚠️ NEUTRAL - ESPERAR"
+                rec = "⚠️ NEUTRAL"
             else:
-                recomendacion = "⚠️ PRECAUCIÓN"
+                rec = "⚠️ PRECAUCIÓN"
             
-            mensaje_telegram_final += f"\n💡 *Recomendación:* {recomendacion}\n"
+            mensaje_telegram_final += f"\n💡 *Recomendación:* {rec}"
             
         else:
-            mensaje_telegram_final += "\n💡 Mercado en condiciones normales. Sin señales de trading.\n"
+            mensaje_telegram_final += "\n💡 Sin señales de trading."
         
         # Enviar mensaje
-        enviar_telegram(mensaje_telegram_final)
-        print("✅ Análisis completado exitosamente")
+        if enviar_telegram(mensaje_telegram_final):
+            print("✅ Análisis completado exitosamente")
+        else:
+            print("⚠️ Análisis completado pero falló envío a Telegram")
         
     except Exception as e:
-        error_msg = f"❌ *ERROR EN SCRIPT*\n\n```\n{str(e)}\n```"
+        error_msg = f"❌ *ERROR CRÍTICO*\n\n```\n{str(e)[:500]}\n```"
         enviar_telegram(error_msg)
-        print(f"❌ Error: {e}")
+        print(f"❌ Error crítico: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 if __name__ == "__main__":
