@@ -25,11 +25,21 @@ warnings.filterwarnings("ignore", category=FutureWarning, module='yfinance')
 # 1. Configuración de parámetros
 colombia_tz = pytz.timezone('America/Bogota')
 ticker = "BTC-USD"
-#end = datetime.now()
-end = datetime(2026, 1, 21, 16, 0, tzinfo=colombia_tz) # Commented out future date
-start = end - timedelta(days=365) # Changed to 1 year to get more data
+
+# MODO TEST: Analizar una anomalía histórica específica
+MODO_TEST = True  # Cambia a False para producción
+
+if MODO_TEST:
+    FECHA_ANOMALIA = "2026-01-21 14:00:00"  # ¡Cambia aquí la fecha/hora deseada!
+    end = pd.Timestamp(FECHA_ANOMALIA, tz=colombia_tz)
+    print(f"MODO TEST ACTIVADO: Analizando anomalía del {end}")
+else:
+    end = datetime.now(colombia_tz)
+    print("Modo producción: Usando datos hasta ahora")
+
+start = end - timedelta(days=365)  # Puedes bajar a 180 para más velocidad
 interval = "1h"
-window = 50 # Reduced window size for rolling calculations to avoid excessive NaNs
+window = 50
 k = 2.5
 
 # 2. Descarga de datos reales con reintentos
