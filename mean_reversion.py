@@ -143,10 +143,7 @@ ax2.legend()
 ax2.grid(True, which='both', linestyle='--', alpha=0.5)
 
 plt.tight_layout()
-# Guardar el gráfico como imagen
-plt.savefig('grafico_btc.png', dpi=150, bbox_inches='tight')
-print("Gráfico guardado como grafico_btc.png")
-plt.close()  # Cerrar la figura para liberar memoria
+plt.close() 
 
 # 1.1. Definición de Features
 # Usaremos una copia para no alterar el dataframe original de anomalías
@@ -752,7 +749,6 @@ def enviar_telegram(mensaje):
         print("Error: BOT_TOKEN o CHAT_ID no configurados.")
         return
 
-    # Primero enviamos el texto
     url_text = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload_text = {
         "chat_id": chat_id,
@@ -762,22 +758,8 @@ def enviar_telegram(mensaje):
     response_text = requests.post(url_text, data=payload_text)
     if response_text.status_code != 200:
         print(f"Error al enviar texto: {response_text.text}")
-
-    # Luego enviamos la foto (si existe)
-    if os.path.exists('grafico_btc.png'):
-        url_photo = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
-        files = {'photo': open('grafico_btc.png', 'rb')}
-        payload_photo = {
-            "chat_id": chat_id,
-            "caption": "📊 Gráfico de análisis BTC-USD (anomalías y bandas)"
-        }
-        response_photo = requests.post(url_photo, data=payload_photo, files=files)
-        if response_photo.status_code != 200:
-            print(f"Error al enviar foto: {response_photo.text}")
-        else:
-            print("Foto enviada correctamente")
     else:
-        print("No se encontró grafico_btc.png")
+        print("Mensaje de texto enviado correctamente")
 
 # Asegurarse de que df_features, ultima_fila, y las variables relacionadas estén disponibles
 # Si este bloque se ejecuta de forma independiente, podría necesitar cargar los datos nuevamente o asegurar que df_features existe.
