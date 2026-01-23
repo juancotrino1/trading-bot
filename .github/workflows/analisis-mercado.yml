@@ -27,7 +27,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python mean_reversion (11).py
+        run: python mean_reversion.py
 
       - name: Notificar error si falla
         if: failure()
