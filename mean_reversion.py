@@ -29,7 +29,7 @@ end = datetime.now()
 #end = datetime(2026, 1, 21, 16, 0, tzinfo=colombia_tz) # Commented out future date
 start = end - timedelta(days=365) # Changed to 1 year to get more data
 interval = "1h"
-window = 50 # Reduced window size for rolling calculations to avoid excessive NaNs
+window = 60 # Reduced window size for rolling calculations to avoid excessive NaNs
 k = 2.5
 
 # 2. Descarga de datos reales con reintentos
@@ -881,4 +881,3 @@ else:
 
 # Enviar el mensaje por Telegram
 enviar_telegram(mensaje_telegram_final)
-
