@@ -2,13 +2,12 @@ name: Análisis de Mercado BTC - Cada 2 Horas
 
 on:
   schedule:
-    - cron: '51 13,15,17,19,21,23,0,3,5 * * *'  # Cada 2 horas de 8AM a 10PM hora Bogotá (UTC)
-  workflow_dispatch:  # Sigue permitiendo ejecución manual
+    - cron: '51 13,15,17,19,21,23,0,3,5 * * *'   # Cada 2 horas aprox. de 8:51 AM a 00:51 AM hora Bogotá (UTC-5)
+  workflow_dispatch:                                 # Permite ejecución manual
 
 jobs:
   run-analysis:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
