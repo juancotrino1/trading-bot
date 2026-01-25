@@ -40,7 +40,8 @@ print("="*80)
 
 # Parámetros de datos
 colombia_tz = pytz.timezone('America/Bogota')
-end = datetime(2026, 1, 25, 13, 0, tzinfo=colombia_tz)
+#end = datetime.now()
+end = datetime(2026, 1, 21, 16, 0, tzinfo=colombia_tz)
 start = end - timedelta(days=365)
 interval = "1h"
 
@@ -674,14 +675,15 @@ def analizar_activo(ticker_symbol):
 
         # Clasificador de calidad
         if usar_clasificador_calidad:
-            X_calidad_activo = ultima_vela[features_calidad[:-2]]
-            X_calidad_activo = pd.concat([
-                X_calidad_activo,
-                pd.DataFrame({
-                    'MR_Alignment_Score': [mr_alignment_score],
-                    'RR_Ratio': [niveles_riesgo['rr_ratio']]
-                }, index=X_calidad_activo.index)
-            ], axis=1)
+            features_disponibles = [f for f in features_calidad if f in ultima_vela.columns]
+            X_calidad_activo = ultima_vela[features_disponibles].copy()
+            # Agregar las features calculadas manualmente
+            X_calidad_activo['MR_Alignment_Score'] = mr_alignment_score
+            X_calidad_activo['RR_Ratio'] = niveles_riesgo['rr_ratio']
+    
+            # Asegurarse de que las columnas estén en el orden correcto
+            X_calidad_activo = X_calidad_activo[features_calidad]
+    
 
             es_buena = modelo_calidad.predict(X_calidad_activo)[0]
             prob_buena = modelo_calidad.predict_proba(X_calidad_activo)[0][1]
@@ -722,8 +724,8 @@ def enviar_telegram(mensaje):
     #chat_id = os.getenv('CHAT_ID')
 
     # Para testing, comentar estas líneas:
-    bot_token = None
-    chat_id = None
+    bot_token = BOT_TOKEN
+    chat_id = CHAT_ID
 
     if not bot_token or not chat_id:
         print("⚠️ BOT_TOKEN o CHAT_ID no configurados - Mensaje no enviado")
@@ -777,9 +779,7 @@ if len(señales_validas) > 0:
 📊 *Activo:* {señal['ticker']}
 📅 *Fecha:* {señal['fecha'].strftime('%Y-%m-%d %H:%M')}
 💰 *Precio:* ${señal['precio']:,.2f}
-
 🎯 *Mean Reversion:* {señal['signal_mr']}
-📈 *Log Return:* {señal['log_return']:.4f}
 🤝 *Alineamiento:* {señal['mr_alignment_score']:.0f}%
 """
 
@@ -787,7 +787,7 @@ if len(señales_validas) > 0:
             mensaje += f"✅ *Calidad:* {señal['prob_calidad']:.0%}\n"
 
         mensaje += f"""
-💰 *GESTIÓN DE RIESGO (ATR):*
+💰 *GESTIÓN DE RIESGO:*
   🛑 *Stop Loss:* ${niveles['stop_loss']:,.2f}
   🎯 *Take Profit:* ${niveles['take_profit']:,.2f}
   📉 *Riesgo:* ${niveles['riesgo']:,.2f}
@@ -810,11 +810,6 @@ if len(señales_validas) > 0:
         riesgo_pct = 0.02  # 2% de riesgo por operación
         riesgo_dolares = capital_ejemplo * riesgo_pct
         tamaño_posicion = riesgo_dolares / niveles['riesgo']
-
-        mensaje += f"\n\n📦 *Ejemplo Tamaño Posición:*"
-        mensaje += f"\n  Capital: ${capital_ejemplo:,.0f}"
-        mensaje += f"\n  Riesgo {riesgo_pct*100:.0f}%: ${riesgo_dolares:,.2f}"
-        mensaje += f"\n  Cantidad: {tamaño_posicion:.4f} unidades"
 
         # Enviar mensaje
         enviar_telegram(mensaje)
