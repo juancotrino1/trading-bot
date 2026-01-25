@@ -2,18 +2,13 @@ name: Análisis de Mercado BTC - Cada 2 Horas
 
 on:
   schedule:
-    # Cada 2 horas: 8:00, 10:00, 12:00, 14:00, 16:00, 18:00, 20:00, 22:00 hora Bogotá
-    - cron: '0 13,16,19,22,1,4 * * *'
-    # Traducción UTC → Bogotá (UTC-5):
-    # 13:00 UTC → 8:00 AM
-    # 15:00 UTC → 10:00 AM
-    # 17:00 UTC → 12:00 PM
-    # 19:00 UTC → 2:00 PM
-    # 21:00 UTC → 4:00 PM
-    # 23:00 UTC → 6:00 PM
-    # 01:00 UTC → 8:00 PM
-    # 03:00 UTC → 10:00 PM
-  workflow_dispatch:       # ← sigue permitiendo ejecución manual cuando quieras
+    # Cada hora en punto (UTC)
+    - cron: '0 * * * *'
+    # Esto ejecutará el workflow a las:
+    # 00:00, 01:00, 02:00, 03:00... hasta 23:00 UTC
+    # En Bogotá (UTC-5) serán:
+    # 19:00, 20:00, 21:00, 22:00, 23:00, 00:00, 01:00... 18:00
+  workflow_dispatch:       # Permite ejecución manual
 
 jobs:
   run-analysis:
