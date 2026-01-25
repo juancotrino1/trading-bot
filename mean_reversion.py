@@ -724,8 +724,8 @@ def enviar_telegram(mensaje):
     #chat_id = os.getenv('CHAT_ID')
 
     # Para testing, comentar estas líneas:
-    bot_token = BOT_TOKEN
-    chat_id = CHAT_ID
+    bot_token = os.getenv('BOT_TOKEN')
+    chat_id = os.getenv('CHAT_ID')
 
     if not bot_token or not chat_id:
         print("⚠️ BOT_TOKEN o CHAT_ID no configurados - Mensaje no enviado")
