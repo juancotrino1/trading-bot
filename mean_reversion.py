@@ -40,8 +40,8 @@ print("="*80)
 
 # Parámetros de datos
 colombia_tz = pytz.timezone('America/Bogota')
-#end = datetime.now()
-end = datetime(2026, 1, 21, 16, 0, tzinfo=colombia_tz)
+end = datetime.now()
+#end = datetime(2026, 1, 21, 16, 0, tzinfo=colombia_tz)
 start = end - timedelta(days=365)
 interval = "1h"
 
@@ -350,15 +350,15 @@ metricas_detalladas = {}
 
 # Parámetros para Grid Search
 param_grid_knn = {
-    'n_neighbors': [21],
+    'n_neighbors': [11,21],
     'weights': ['uniform', 'distance'],
-    'metric': ['euclidean']
+    'metric': ['euclidean','manhattan', 'minkowski']
 }
 
 param_grid_rf = {
-    'n_estimators': [50],
-    'max_depth': [5],
-    'min_samples_split': [20]
+    'n_estimators': [50,100],
+    'max_depth': [5,10],
+    'min_samples_split': [10,20]
 }
 
 X = df_features_todos[features_list]
