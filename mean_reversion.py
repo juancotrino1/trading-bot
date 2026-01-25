@@ -40,7 +40,7 @@ print("="*80)
 
 # Parámetros de datos
 colombia_tz = pytz.timezone('America/Bogota')
-end = datetime(2026, 1, 25, 12, 0, tzinfo=colombia_tz)
+end = datetime(2026, 1, 25, 11, 0, tzinfo=colombia_tz)
 start = end - timedelta(days=365)
 interval = "1h"
 
