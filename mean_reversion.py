@@ -65,7 +65,13 @@ tickers_monitorear = [
     "ETH-USD",
     "BNB-USD",
     "SOL-USD",
-    "XRP-USD"
+    "XRP-USD",
+    "VIX",
+    "NVDA",
+    "TSLA",
+    "NU",
+    "BABA",
+    "PFE"
 ]
 
 # Horizontes de predicción (en horas)
