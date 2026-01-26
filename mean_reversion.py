@@ -350,15 +350,15 @@ metricas_detalladas = {}
 
 # Parámetros para Grid Search
 param_grid_knn = {
-    'n_neighbors': [11,21],
-    'weights': ['uniform', 'distance'],
-    'metric': ['euclidean','manhattan', 'minkowski']
+    'n_neighbors': [11],
+    'weights': ['uniform'],
+    'metric': ['euclidean','manhattan']
 }
 
 param_grid_rf = {
-    'n_estimators': [50,100],
+    'n_estimators': [50],
     'max_depth': [5,10],
-    'min_samples_split': [10,20]
+    'min_samples_split': [10]
 }
 
 X = df_features_todos[features_list]
