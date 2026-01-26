@@ -66,7 +66,7 @@ tickers_monitorear = [
     "BNB-USD",
     "SOL-USD",
     "XRP-USD",
-    "SUI20947-USD"
+    "SUI20947-USD",
     "VIX",
     "NVDA",
     "TSLA",
