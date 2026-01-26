@@ -66,12 +66,18 @@ tickers_monitorear = [
     "BNB-USD",
     "SOL-USD",
     "XRP-USD",
+    "SUI20947-USD"
     "VIX",
     "NVDA",
     "TSLA",
     "NU",
     "BABA",
-    "PFE"
+    "PFE",
+    "MELI",
+    "META",
+    "QQQ",
+    "AMZN",
+    "XOM"
 ]
 
 # Horizontes de predicción (en horas)
