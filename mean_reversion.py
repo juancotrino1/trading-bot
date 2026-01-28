@@ -52,7 +52,7 @@ FECHA_INICIO_ENTRENAMIENTO = FECHA_INICIO_BACKTEST - timedelta(days=365)  # 1 a�
 
 # Parámetros del sistema
 INTERVALO = "1h"
-ACTIVOS = ["BTC-USD"]  # Puedes agregar más activos aquí
+ACTIVOS = ["BTC-USD","ETH_USD","DOGE_USD","ADA_USD","BNB_USD","SOL_USD","LINK-USD","XLM-USD","HBAR-USD","AVAX-USD","SUI20947-USD"]  # Puedes agregar más activos aquí
 
 # Parámetros de Mean Reversion
 VENTANA_MR = 60
