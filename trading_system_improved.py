@@ -62,7 +62,7 @@ class TradingConfig:
     
     # Activos
     ACTIVOS = [
-        "AMZN","PYPL","GOOG","BABA","NU","SOFI","F","MU","NFLX","AMD","META","NBIS","MELI","CVX","V","ORCL","INTC","NVDA","JNJ","PG","KO","XOM","NEE","UBER","PFE","PDD","SONY","ADBE","NKE","GM","FISV"
+        "AMZN","PYPL","GOOG","BABA","NU","SOFI","F","MU","NFLX","AMD","META","NBIS","MELI","CVX","V","ORCL","INTC","NVDA","JNJ","PG","KO","XOM","NEE","UBER","PFE","PDD","SONY","ADBE","NKE","GM","BAC"
     ]
     
     # Parámetros técnicos
