@@ -752,10 +752,10 @@ class SistemaTradingTicker:
         criterios.append(m['tasa_exito'] > 0.50)
         
         # Criterio 2: Retorno total positivo
-        criterios.append(m['retorno_total'] > 0)
+        criterios.append(m['retorno_total'] > 0.1)
         
         # Criterio 3: Profit factor > 1.2
-        criterios.append(m['profit_factor'] > 1.2)
+        criterios.append(m['profit_factor'] > 1.5)
         
         # Criterio 4: Drawdown controlado
         criterios.append(abs(m['max_drawdown']) < 0.25)
@@ -764,7 +764,7 @@ class SistemaTradingTicker:
         criterios.append(m['n_operaciones'] >= 15)
         
         # Criterio 6: Sharpe ratio positivo
-        criterios.append(m['sharpe_ratio'] > 0)
+        criterios.append(m['sharpe_ratio'] > 1.5)
         
         criterios_cumplidos = sum(criterios)
         viable = criterios_cumplidos >= 4
