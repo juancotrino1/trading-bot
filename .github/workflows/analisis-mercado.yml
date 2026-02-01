@@ -1,32 +1,44 @@
 name: Trading Signal Engine
-
 on:
   schedule:
     - cron: "0 * * * *"   # cada hora
   workflow_dispatch:
-
 jobs:
   run-system:
     runs-on: ubuntu-latest
-
     steps:
+      - name: Check if weekday
+        id: weekday-check
+        run: |
+          DAY=$(date +%u)
+          if [ $DAY -ge 1 ] && [ $DAY -le 5 ]; then
+            echo "is_weekday=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_weekday=false" >> $GITHUB_OUTPUT
+            echo "Hoy es fin de semana. El workflow no se ejecutará."
+          fi
+      
       - uses: actions/checkout@v4
-
+        if: steps.weekday-check.outputs.is_weekday == 'true'
+      
       - name: Set up Python
+        if: steps.weekday-check.outputs.is_weekday == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: "pip"
-
+      
       - name: Upgrade pip
+        if: steps.weekday-check.outputs.is_weekday == 'true'
         run: python -m pip install --upgrade pip
-
+      
       - name: Install dependencies
+        if: steps.weekday-check.outputs.is_weekday == 'true'
         run: pip install -r requirements.txt
-
+      
       - name: Run trading system
+        if: steps.weekday-check.outputs.is_weekday == 'true'
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python trading_system_improved.py
-
