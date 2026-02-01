@@ -76,7 +76,7 @@ class TradingConfig:
     HORIZONTES = [4, 8, 12, 24, 48]  # En horas
     
     # Gestión de riesgo
-    MULTIPLICADOR_SL = 2.0
+    MULTIPLICADOR_SL = 1.5
     MULTIPLICADOR_TP = 3.0
     RATIO_MINIMO_RR = 1.5
     MAX_RIESGO_POR_OPERACION = 0.02  # 2% del capital
