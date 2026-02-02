@@ -62,10 +62,20 @@ class TradingConfig:
     
     # Activos
     ACTIVOS = [
-        "AMZN","PYPL","GOOG","BABA","NU","SOFI","F","MU","NFLX","AMD","META","NBIS","MELI","CVX","V","ORCL","INTC","NVDA","JNJ","PG","KO","XOM","NEE","UBER","PFE","PDD","SONY","ADBE","NKE","GM","BAC", #STOCKS
-        "^GSPC","^NDX","^DJI","^RUT","^N225", #ETF
-        "EURUSD=X","GBPUSD=X","JPY=X","AUDUSD=X", # Monedas
-        "GC=F","SI=F","HG=F","CL=F","KC=F","NG=F","HG=F" #Commodities
+        "AMZN","GOOG","BABA","MELI","PDD", #E-commerce/Tech
+        "NVDA","AMD","INTC","ORCL","MU", #Semiconductores/Tech
+        "NU","BAC","PYPL","SOFI","V","BRK-B","JPM" #Financiero
+        "NFLX","SONY", #Entretenimiento
+        "XOM","NEE","CVX", #Energéticas
+        "F","GM", #Automotriz
+        "META","ADBE","AAPL" #Tech/Software
+        "NBIS", #Tecnología Médica
+        "JNJ","PFE", #Farmacéuticas
+        "PG","KO","WMT","PEP" #Consumo Masivo
+        "UBER", #Tecnología/Transporte
+        "NKE", #Retail/Deportes
+        "^GSPC","^NDX","^DJI", #Índices
+        "GC=F","SI=F","HG=F","CL=F","KC=F","NG=F" #Commodities
     ]
     
     # Parámetros técnicos
