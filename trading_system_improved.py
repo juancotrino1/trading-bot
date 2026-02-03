@@ -62,20 +62,32 @@ class TradingConfig:
     
     # Activos
     ACTIVOS = [
-        "AMZN","GOOG","BABA","MELI","PDD", #E-commerce/Tech
-        "NVDA","AMD","INTC","ORCL","MU", #Semiconductores/Tech
-        "NU","BAC","PYPL","SOFI","V","BRK-B","JPM" #Financiero
-        "NFLX","SONY", #Entretenimiento
-        "XOM","NEE","CVX", #Energéticas
-        "F","GM", #Automotriz
-        "META","ADBE","AAPL" #Tech/Software
-        "NBIS", #Tecnología Médica
-        "JNJ","PFE", #Farmacéuticas
-        "PG","KO","WMT","PEP" #Consumo Masivo
-        "UBER", #Tecnología/Transporte
-        "NKE", #Retail/Deportes
-        "^GSPC","^NDX","^DJI", #Índices
-        "GC=F","SI=F","HG=F","CL=F","KC=F","NG=F" #Commodities
+            # E-commerce / Tech
+            "AMZN","GOOG","BABA","MELI","PDD",
+            # Semiconductores / Tech
+            "NVDA","AMD","INTC","ORCL","MU",
+            # Financiero
+            "NU","BAC","PYPL","SOFI","V","BRK-B","JPM","SCHW",
+            # Entretenimiento
+            "NFLX","SONY","WBD",
+            # Energéticas
+            "XOM","NEE","CVX",
+            # Industrial / Automotriz
+            "F","GM","BA","MMM",
+            # Tech / Software
+            "META","ADBE","AAPL","CRM",
+            # Tecnología Médica / Biotech
+            "NBIS",
+            # Farmacéuticas
+            "JNJ","PFE",
+            # Consumo Masivo
+            "PG","KO","WMT","PEP",
+            # Tecnología / Transporte
+            "UBER",
+            # Retail / Deportes
+            "NKE",
+            # Índices
+            "^GSPC","^NDX","^DJI"
     ]
     
     # Parámetros técnicos
